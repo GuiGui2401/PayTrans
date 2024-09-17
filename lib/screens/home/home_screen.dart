@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:rive_animation/screens/home/page/generate_qr_code.dart';
-import 'package:rive_animation/screens/home/page/mobile_scanner_overlay.dart';
-import 'package:rive_animation/screens/home/page/transaction_page.dart';
+import 'package:paytrans/screens/home/page/generate_qr_code.dart';
+import 'package:paytrans/screens/home/page/scan_qr_code_page.dart';
+import 'package:paytrans/screens/home/page/transaction_page.dart';
 
 import '../../model/course.dart';
 import 'components/course_card.dart';
@@ -60,34 +60,39 @@ class HomePage extends StatelessWidget {
                 switch (course.title) {
                   case "Generate Qr Code":
                     onTap = () => Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const GenerateCodePage()),
-                    );
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const GenerateQRCodePage()),
+                        );
                     break;
                   case "Scan Qr Code":
                     onTap = () => Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const BarcodeScannerWithOverlay()),
-                    );
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const ScanQRCodePage()),
+                        );
                     break;
                   case "List Of All Transaction":
                     onTap = () => Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const TransactionsPage()),
-                    );
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const TransactionsPage()),
+                        );
                     break;
                   case "Profiles":
                     onTap = () => Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const ProfilePage()),
-                    );
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const ProfilePage()),
+                        );
                     break;
                   default:
                     onTap = () {};
                 }
 
                 return Padding(
-                  padding: const EdgeInsets.only(left: 20, right: 20, bottom: 20),
+                  padding:
+                      const EdgeInsets.only(left: 20, right: 20, bottom: 20),
                   child: SecondaryCourseCard(
                     title: course.title,
                     description: course.description,

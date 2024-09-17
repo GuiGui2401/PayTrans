@@ -2,6 +2,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:rive/rive.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../home/home_screen.dart';
 
@@ -14,6 +16,12 @@ class SignUpForm extends StatefulWidget {
 
 class _SignUpFormState extends State<SignUpForm> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _confirmPasswordController =
+      TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
+
   bool isShowLoading = false;
   bool isShowConfetti = false;
 
@@ -29,40 +37,64 @@ class _SignUpFormState extends State<SignUpForm> {
     return controller;
   }
 
-  void signUp(BuildContext context) {
+  void signUp(BuildContext context) async {
+    if (!_formKey.currentState!.validate()) {
+      error.fire();
+      return;
+    }
+
     setState(() {
       isShowLoading = true;
       isShowConfetti = true;
     });
-    Future.delayed(const Duration(seconds: 1), () {
-      if (_formKey.currentState!.validate()) {
-        check.fire();
-        Future.delayed(const Duration(seconds: 2), () {
-          setState(() {
-            isShowLoading = false;
-          });
-          confetti.fire();
-          // Navigate & hide confetti
-              Future.delayed(const Duration(seconds: 1), () {
-                // Navigator.pop(context);
-                if (!context.mounted) return;
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const HomePage(),
-                  ),
-                );
-              });
+
+    try {
+      // Récupération des valeurs du formulaire
+      String email = _emailController.text.trim();
+      String password = _passwordController.text.trim();
+      String phone = _phoneController.text.trim();
+
+      // Créer l'utilisateur dans Firebase Auth
+      UserCredential userCredential = await FirebaseAuth.instance
+          .createUserWithEmailAndPassword(email: email, password: password);
+
+      // Récupération de l'UID de l'utilisateur
+      String uid = userCredential.user!.uid;
+
+      // Enregistrer le numéro de téléphone dans Firestore
+      await FirebaseFirestore.instance.collection('users').doc(uid).set({
+        'email': email,
+        'phone': phone,
+        // 'imei': imei,  // Récupérer et ajouter l'IMEI si nécessaire
+      });
+
+      // Succès : montrer l'animation de réussite
+      check.fire();
+      Future.delayed(const Duration(seconds: 2), () {
+        setState(() {
+          isShowLoading = false;
         });
-      } else {
-        error.fire();
-        Future.delayed(const Duration(seconds: 2), () {
-          setState(() {
-            isShowLoading = false;
-          });
+        confetti.fire();
+        Future.delayed(const Duration(seconds: 1), () {
+          if (!context.mounted) return;
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const HomePage(),
+            ),
+          );
         });
-      }
-    });
+      });
+    } catch (e) {
+      // En cas d'erreur, afficher l'animation d'erreur
+      error.fire();
+      setState(() {
+        isShowLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erreur lors de l\'inscription : $e')),
+      );
+    }
   }
 
   @override
@@ -81,6 +113,7 @@ class _SignUpFormState extends State<SignUpForm> {
               Padding(
                 padding: const EdgeInsets.only(top: 8.0, bottom: 16),
                 child: TextFormField(
+                  controller: _emailController,
                   validator: (value) {
                     if (value!.isEmpty) {
                       return "Email cannot be empty";
@@ -96,12 +129,36 @@ class _SignUpFormState extends State<SignUpForm> {
                 ),
               ),
               const Text(
+                "Phone Number",
+                style: TextStyle(color: Colors.black54),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(top: 8.0, bottom: 16),
+                child: TextFormField(
+                  controller: _phoneController,
+                  validator: (value) {
+                    if (value!.isEmpty) {
+                      return "Phone number cannot be empty";
+                    }
+                    return null;
+                  },
+                  keyboardType: TextInputType.phone,
+                  decoration: InputDecoration(
+                    prefixIcon: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                      child: SvgPicture.asset("assets/icons/phone.svg"),
+                    ),
+                  ),
+                ),
+              ),
+              const Text(
                 "Password",
                 style: TextStyle(color: Colors.black54),
               ),
               Padding(
                 padding: const EdgeInsets.only(top: 8.0, bottom: 16),
                 child: TextFormField(
+                  controller: _passwordController,
                   validator: (value) {
                     if (value!.isEmpty) {
                       return "Password cannot be empty";
@@ -124,9 +181,13 @@ class _SignUpFormState extends State<SignUpForm> {
               Padding(
                 padding: const EdgeInsets.only(top: 8.0, bottom: 16),
                 child: TextFormField(
+                  controller: _confirmPasswordController,
                   validator: (value) {
                     if (value!.isEmpty) {
                       return "Please confirm your password";
+                    }
+                    if (value != _passwordController.text) {
+                      return "Passwords do not match";
                     }
                     return null;
                   },

@@ -2,9 +2,9 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:rive/rive.dart';
-import 'package:rive_animation/constants.dart';
-import 'package:rive_animation/screens/home/home_screen.dart';
-import 'package:rive_animation/utils/rive_utils.dart';
+import 'package:paytrans/constants.dart';
+import 'package:paytrans/screens/home/home_screen.dart';
+import 'package:paytrans/utils/rive_utils.dart';
 
 import '../../model/menu.dart';
 import 'components/btm_nav_item.dart';

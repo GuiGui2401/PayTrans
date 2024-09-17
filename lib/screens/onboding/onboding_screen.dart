@@ -2,8 +2,8 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:rive/rive.dart';
-import 'package:rive_animation/screens/onboding/components/animated_btn.dart';
-import 'package:rive_animation/screens/onboding/components/custom_sign_in.dart';
+import 'package:paytrans/screens/onboding/components/animated_btn.dart';
+import 'package:paytrans/screens/onboding/components/custom_sign_in.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});

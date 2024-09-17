@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
-import 'package:rive_animation/screens/onboding/components/sign_in_form.dart';
+import 'package:paytrans/screens/onboding/components/sign_in_form.dart';
 
 import 'sign_up_form.dart';
 
@@ -76,7 +76,8 @@ Future<Object?> customSigninDialog(BuildContext context,
                           IconButton(
                               padding: EdgeInsets.zero,
                               onPressed: () {
-                                Navigator.pop(context); // Ferme la popup actuelle
+                                Navigator.pop(
+                                    context); // Ferme la popup actuelle
                                 customSignupDialog(context, onClosed: (_) {});
                               },
                               icon: SvgPicture.asset(

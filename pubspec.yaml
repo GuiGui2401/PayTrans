@@ -43,6 +43,13 @@ dependencies:
   pretty_qr_code: ^3.3.0
   mobile_scanner: ^5.2.1
   image_picker: ^1.1.2
+  firebase_core: ^3.4.1
+  firebase_auth: ^5.2.1
+  cloud_firestore: ^5.4.1
+  qr_flutter: ^4.1.0
+  flutter_barcode_scanner: ^2.0.0
+  cinetpay: ^1.0.7
+  provider: ^6.1.2
 
 dev_dependencies:
   flutter_test:
