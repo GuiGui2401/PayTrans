@@ -1,3 +1,4 @@
 {
-    "cmake.sourceDirectory": "D:/Dev/Code/paytrans/linux"
+    "cmake.sourceDirectory": "D:/Dev/Code/paytrans/linux",
+    "java.configuration.updateBuildConfiguration": "interactive"
 }

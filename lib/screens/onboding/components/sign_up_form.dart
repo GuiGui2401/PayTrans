@@ -18,8 +18,6 @@ class _SignUpFormState extends State<SignUpForm> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _confirmPasswordController =
-      TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
 
   bool isShowLoading = false;
@@ -62,9 +60,11 @@ class _SignUpFormState extends State<SignUpForm> {
       String uid = userCredential.user!.uid;
 
       // Enregistrer le numéro de téléphone dans Firestore
-      await FirebaseFirestore.instance.collection('users').doc(uid).set({
+      await FirebaseFirestore.instance.collection('users').doc(phone).set({
         'email': email,
         'phone': phone,
+        'solde': 0.0,
+        'uid': uid
         // 'imei': imei,  // Récupérer et ajouter l'IMEI si nécessaire
       });
 
@@ -162,32 +162,6 @@ class _SignUpFormState extends State<SignUpForm> {
                   validator: (value) {
                     if (value!.isEmpty) {
                       return "Password cannot be empty";
-                    }
-                    return null;
-                  },
-                  obscureText: true,
-                  decoration: InputDecoration(
-                    prefixIcon: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                      child: SvgPicture.asset("assets/icons/password.svg"),
-                    ),
-                  ),
-                ),
-              ),
-              const Text(
-                "Confirm Password",
-                style: TextStyle(color: Colors.black54),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(top: 8.0, bottom: 16),
-                child: TextFormField(
-                  controller: _confirmPasswordController,
-                  validator: (value) {
-                    if (value!.isEmpty) {
-                      return "Please confirm your password";
-                    }
-                    if (value != _passwordController.text) {
-                      return "Passwords do not match";
                     }
                     return null;
                   },

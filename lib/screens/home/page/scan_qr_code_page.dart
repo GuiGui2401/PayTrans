@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 import 'package:cinetpay/cinetpay.dart';
 import 'package:get/get.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ScanQRCodePage extends StatefulWidget {
   const ScanQRCodePage({super.key});
@@ -57,22 +58,26 @@ class _ScanQRCodePageState extends State<ScanQRCodePage> {
           'channels': 'ALL',
           'description': 'Payment for $phoneNumber',
         },
-        waitResponse: (data) {
+        waitResponse: (data) async {
           if (mounted) {
             setState(() {
               if (kDebugMode) {
                 print(data);
               }
-              // Gérez la réponse ici (succès ou échec)
-              final icon = data['status'] == 'ACCEPTED'
-                  ? Icons.check_circle
-                  : Icons.mood_bad_rounded;
-              final color = data['status'] == 'ACCEPTED'
-                  ? Colors.green
-                  : Colors.redAccent;
-              Get.back();
-              _showPaymentResult(icon, color, data['status']);
             });
+
+            if (data['status'] == 'ACCEPTED') {
+              await _updateUserSolde(phoneNumber, double.parse(amount));
+            }
+
+            final icon = data['status'] == 'ACCEPTED'
+                ? Icons.check_circle
+                : Icons.mood_bad_rounded;
+            final color =
+                data['status'] == 'ACCEPTED' ? Colors.green : Colors.redAccent;
+
+            Get.back();
+            _showPaymentResult(icon, color, data['status']);
           }
         },
         onError: (data) {
@@ -81,7 +86,6 @@ class _ScanQRCodePageState extends State<ScanQRCodePage> {
               if (kDebugMode) {
                 print(data);
               }
-              // Gérez l'erreur ici
               _showPaymentResult(Icons.warning_rounded, Colors.yellowAccent,
                   data['description']);
               Get.back();
@@ -90,6 +94,34 @@ class _ScanQRCodePageState extends State<ScanQRCodePage> {
         },
       ),
     );
+  }
+
+  Future<void> _updateUserSolde(String phoneNumber, double amount) async {
+    try {
+      // Récupérer le document utilisateur à partir de son numéro de téléphone
+      DocumentSnapshot userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(phoneNumber)
+          .get();
+
+      if (userDoc.exists) {
+        // Récupérer le solde actuel
+        double currentSolde = userDoc['solde'] ?? 0.0;
+
+        // Ajouter le montant transféré au solde actuel
+        double updatedSolde = currentSolde + amount;
+
+        // Mettre à jour le solde dans Firestore
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(phoneNumber)
+            .update({'solde': updatedSolde});
+      } else {
+        print('Utilisateur non trouvé');
+      }
+    } catch (e) {
+      print('Erreur lors de la mise à jour du solde : $e');
+    }
   }
 
   void _showPaymentResult(IconData icon, Color color, String message) {
@@ -101,6 +133,10 @@ class _ScanQRCodePageState extends State<ScanQRCodePage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
+            style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF2A6FB0),
+                textStyle: const TextStyle(
+                    color: Color(0xFFFFFFFF), fontWeight: FontWeight.bold)),
             child: const Text('OK'),
           ),
         ],
@@ -117,6 +153,10 @@ class _ScanQRCodePageState extends State<ScanQRCodePage> {
       body: Center(
         child: ElevatedButton(
           onPressed: _scanQRCode,
+          style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF2A6FB0),
+              textStyle: const TextStyle(
+                  color: Color(0xFFFFFFFF), fontWeight: FontWeight.bold)),
           child: const Text('Scanner QR Code'),
         ),
       ),
