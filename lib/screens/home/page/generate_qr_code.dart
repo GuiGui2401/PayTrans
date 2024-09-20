@@ -7,6 +7,7 @@ class GenerateQRCodePage extends StatefulWidget {
   const GenerateQRCodePage({super.key});
 
   @override
+  // ignore: library_private_types_in_public_api
   _GenerateQRCodePageState createState() => _GenerateQRCodePageState();
 }
 
@@ -20,21 +21,19 @@ class _GenerateQRCodePageState extends State<GenerateQRCodePage> {
     _getUserPhoneNumber();
   }
 
-  /// Récupère le numéro de téléphone de l'utilisateur à partir de Firestore.
   Future<void> _getUserPhoneNumber() async {
     User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
-      DocumentSnapshot userDoc = await FirebaseFirestore.instance
+      // Requête pour obtenir les données de l'utilisateur via l'UID
+      QuerySnapshot userSnapshot = await FirebaseFirestore.instance
           .collection('users')
-          .doc(user
-              .uid) // Utiliser l'UID de l'utilisateur au lieu du numéro de téléphone
+          .where('uid', isEqualTo: user.uid)
           .get();
 
-      // Vérifiez que le document existe et contient un numéro de téléphone
-      if (userDoc.exists && userDoc['phone'] != null) {
+      if (userSnapshot.docs.isNotEmpty) {
+        var userData = userSnapshot.docs.first.data() as Map<String, dynamic>;
         setState(() {
-          phoneNumber = userDoc[
-              'phone']; // Utiliser le bon champ pour le numéro de téléphone
+          phoneNumber = userData['phone'];
         });
       }
     }
@@ -44,7 +43,11 @@ class _GenerateQRCodePageState extends State<GenerateQRCodePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Générer un Code QR'),
+        title: const Text(
+          'Générer un Code QR',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        automaticallyImplyLeading: false,
       ),
       body: phoneNumber == null
           ? const Center(child: CircularProgressIndicator())
@@ -52,8 +55,9 @@ class _GenerateQRCodePageState extends State<GenerateQRCodePage> {
               padding: const EdgeInsets.all(16.0),
               child: Center(
                 child: Column(
+                  mainAxisAlignment:
+                      MainAxisAlignment.center, // Centrage vertical
                   children: [
-                    // Champ de texte pour entrer le montant
                     TextField(
                       controller: _amountController,
                       decoration: const InputDecoration(
@@ -61,7 +65,6 @@ class _GenerateQRCodePageState extends State<GenerateQRCodePage> {
                       keyboardType: TextInputType.number,
                     ),
                     const SizedBox(height: 20),
-                    // Bouton pour générer le QR code
                     ElevatedButton(
                       onPressed: () {
                         if (_amountController.text.isNotEmpty) {
@@ -72,12 +75,11 @@ class _GenerateQRCodePageState extends State<GenerateQRCodePage> {
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF2A6FB0),
-                        textStyle: const TextStyle(
-                          color: Color(0xFFFFFFFF),
-                          fontWeight: FontWeight.bold,
-                        ),
                       ),
-                      child: const Text('Générer QR Code'),
+                      child: const Text('Générer QR Code',
+                          style: TextStyle(
+                              color: Color(0xFFFFFFFF),
+                              fontWeight: FontWeight.bold)),
                     ),
                   ],
                 ),
@@ -86,7 +88,6 @@ class _GenerateQRCodePageState extends State<GenerateQRCodePage> {
     );
   }
 
-  /// Affiche le QR code dans une boîte de dialogue.
   void _showQRCode(String data) {
     showDialog(
       context: context,

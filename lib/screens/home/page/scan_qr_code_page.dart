@@ -37,10 +37,8 @@ class _ScanQRCodePageState extends State<ScanQRCodePage> {
     List<String> paymentInfo = data.split('_');
     String phoneNumber = paymentInfo[0];
     String amount = paymentInfo[1];
-
     final String transactionId = Random().nextInt(100000000).toString();
 
-    // Naviguer vers la page CinetPayCheckout
     await Get.to(
       CinetPayCheckout(
         title: 'Payment Checkout',
@@ -68,6 +66,8 @@ class _ScanQRCodePageState extends State<ScanQRCodePage> {
 
             if (data['status'] == 'ACCEPTED') {
               await _updateUserSolde(phoneNumber, double.parse(amount));
+              await _recordTransaction(
+                  phoneNumber, double.parse(amount), 'ACCEPTED');
             }
 
             final icon = data['status'] == 'ACCEPTED'
@@ -96,6 +96,23 @@ class _ScanQRCodePageState extends State<ScanQRCodePage> {
     );
   }
 
+// Fonction pour enregistrer les transactions dans Firestore
+  Future<void> _recordTransaction(
+      String phoneNumber, double amount, String status) async {
+    try {
+      await FirebaseFirestore.instance.collection('transactions').add({
+        'phoneNumber': phoneNumber,
+        'amount': amount,
+        'status': status,
+        'date': Timestamp.now(), // Date de la transaction
+      });
+    } catch (e) {
+      if (kDebugMode) {
+        print('Erreur lors de l\'enregistrement de la transaction : $e');
+      }
+    }
+  }
+
   Future<void> _updateUserSolde(String phoneNumber, double amount) async {
     try {
       // Récupérer le document utilisateur à partir de son numéro de téléphone
@@ -117,10 +134,14 @@ class _ScanQRCodePageState extends State<ScanQRCodePage> {
             .doc(phoneNumber)
             .update({'solde': updatedSolde});
       } else {
-        print('Utilisateur non trouvé');
+        if (kDebugMode) {
+          print('Utilisateur non trouvé');
+        }
       }
     } catch (e) {
-      print('Erreur lors de la mise à jour du solde : $e');
+      if (kDebugMode) {
+        print('Erreur lors de la mise à jour du solde : $e');
+      }
     }
   }
 
@@ -134,10 +155,11 @@ class _ScanQRCodePageState extends State<ScanQRCodePage> {
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
             style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF2A6FB0),
-                textStyle: const TextStyle(
+              backgroundColor: const Color(0xFF2A6FB0),
+            ),
+            child: const Text('OK',
+                style: TextStyle(
                     color: Color(0xFFFFFFFF), fontWeight: FontWeight.bold)),
-            child: const Text('OK'),
           ),
         ],
       ),
@@ -148,16 +170,21 @@ class _ScanQRCodePageState extends State<ScanQRCodePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Scanner un Code QR'),
+        title: const Text(
+          'Scanner un Code QR',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        automaticallyImplyLeading: false,
       ),
       body: Center(
         child: ElevatedButton(
           onPressed: _scanQRCode,
           style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF2A6FB0),
-              textStyle: const TextStyle(
+            backgroundColor: const Color(0xFF2A6FB0),
+          ),
+          child: const Text('Scanner QR Code',
+              style: TextStyle(
                   color: Color(0xFFFFFFFF), fontWeight: FontWeight.bold)),
-          child: const Text('Scanner QR Code'),
         ),
       ),
     );

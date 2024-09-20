@@ -92,7 +92,7 @@ class _EntryPointState extends State<EntryPoint>
                   borderRadius: BorderRadius.all(
                     Radius.circular(24),
                   ),
-                  child: HomePage(),
+                  child: MyHomePage(),
                 ),
               ),
             ),

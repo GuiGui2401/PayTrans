@@ -18,11 +18,12 @@ class CoursePage extends StatefulWidget {
   const CoursePage({super.key});
 
   @override
+  // ignore: library_private_types_in_public_api
   _CoursePageState createState() => _CoursePageState();
 }
 
 class _CoursePageState extends State<CoursePage> {
-  String accountValue = "0 XAF"; // Valeur initiale du solde
+  String accountValue = "10 XAF"; // Valeur initiale du solde
 
   @override
   void initState() {
@@ -30,15 +31,18 @@ class _CoursePageState extends State<CoursePage> {
     _getAccountValue();
   }
 
+  // Fonction pour récupérer le solde à partir de la base de données
   Future<void> _getAccountValue() async {
     User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
-      DocumentSnapshot userDoc = await FirebaseFirestore.instance
+      // Requête pour récupérer les informations de l'utilisateur via l'UID
+      QuerySnapshot userSnapshot = await FirebaseFirestore.instance
           .collection('users')
-          .doc(user.uid) // Utilisation de l'UID
+          .where('uid', isEqualTo: user.uid)
           .get();
-      if (userDoc.exists) {
-        double solde = userDoc['solde'] ?? 0.0; // Récupérer le solde
+      if (userSnapshot.docs.isNotEmpty) {
+        var userData = userSnapshot.docs.first.data() as Map<String, dynamic>;
+        int solde = userData['solde'] ?? 0; // Récupérer le solde
         setState(() {
           accountValue = "$solde XAF"; // Mettre à jour la valeur du solde
           _updateCoursesWithSolde(accountValue);
@@ -75,7 +79,7 @@ class _CoursePageState extends State<CoursePage> {
 final List<Course> courses = [
   Course(
     title: "Account Value",
-    description: "0 XAF", // Initialement, affiche "0 XAF"
+    description: "0 XAF", // Initialement, affiche "10 XAF"
   ),
 ];
 
@@ -92,7 +96,7 @@ final List<Course> recentCourses = [
   ),
   Course(
     title: "List Of All Transactions",
-    description: "click to see resume of all your transactions",
+    description: "resume of all your transactions",
   ),
   Course(
     title: "Profiles",
